@@ -569,13 +569,17 @@ function exportChart() {
         return alert("Chart not ready");
     }
     
-    const canvas = document.getElementById('forecastChart');
-    const imageUrl = canvas.toDataURL('image/png');
+    // 1. Use Chart.js built-in method
+    const base64Image = forecastChartInstance.toBase64Image();
     
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = 'inflation_chart.png';
+    // 2. Create link dynamically
+    const link = document.createElement("a");
     
+    // 3. Set properties
+    link.href = base64Image;
+    link.download = "inflation_chart.png";
+    
+    // 4. Trigger download
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
