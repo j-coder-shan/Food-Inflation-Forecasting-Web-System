@@ -10,8 +10,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <!-- SheetJS for Browser-side Parsing -->
+    
+    <!-- External Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Hammer.js is required for zoom plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 </head>
 <body>
     <div class="background-elements">
@@ -29,98 +34,248 @@
             <p class="subtitle">Food Inflation Forecasting Web System</p>
         </header>
 
-        <!-- Main Content Grid -->
-        <main class="main-content">
-            <!-- Left Column: Intro & Navigation -->
-            <section class="intro-section glass-panel">
-                <div class="hero-text">
-                    <h2 class="typing-container">
-                        <span id="typing-text"></span><span class="cursor">|</span>
-                    </h2>
-                    <p class="description">
-                        Harness the power of machine learning to predict future food inflation trends. 
-                        Upload your historical price index data to unlock deep insights and interactive statistical models.
-                    </p>
-                </div>
-
-                <div class="action-nav">
-                    <h3>Quick Navigation</h3>
-                    <div class="nav-buttons">
-                        <button class="nav-btn outline-btn" id="instructions-btn">
-                            <i class="fa-solid fa-book"></i> Instructions
-                        </button>
-                        <!-- Disabled by default, enabled after valid upload -->
-                        <button class="nav-btn primary-btn disabled" id="model-selection-btn" disabled>
-                            <i class="fa-solid fa-microchip"></i> Model Selection <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+        <!-- MODULE 1: HOME PAGE -->
+        <section id="module-home" class="page-section active">
+            <main class="main-content">
+                <!-- Left Column: Intro & Navigation -->
+                <div class="intro-section glass-panel">
+                    <div class="hero-text">
+                        <h2 class="typing-container">
+                            <span id="typing-text"></span><span class="cursor">|</span>
+                        </h2>
+                        <p class="description">
+                            Harness the power of machine learning to predict future food inflation trends. 
+                            Upload your historical price index data to unlock deep insights and interactive statistical models.
+                        </p>
                     </div>
-                </div>
-            </section>
 
-            <!-- Right Column: Upload Area -->
-            <section class="upload-section glass-panel">
-                <div class="section-header">
-                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Dataset</h3>
-                    <div class="help-section">
-                        <a href="data/sample_dataset.csv" download class="sample-btn tooltip-container">
-                            <i class="fa-solid fa-download"></i> Sample
-                            <span class="tooltip">Dataset must contain 'Month' and 'Index' columns. e.g. YYYY-MM and numerical index.</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="upload-area" id="drop-zone">
-                    <div class="upload-icon">
-                        <i class="fa-solid fa-file-csv"></i>
-                    </div>
-                    <h4>Drag & Drop your dataset here</h4>
-                    <p>Supported formats: <strong>.csv, .xlsx</strong></p>
-                    <span class="or-divider">OR</span>
-                    <label for="file-input" class="browse-btn">Browse Files</label>
-                    <input type="file" id="file-input" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
-                </div>
-
-                <!-- Upload Progress & Status -->
-                <div class="upload-status hidden" id="upload-status">
-                    <div class="file-info">
-                        <i class="fa-solid fa-file-lines" id="file-type-icon"></i>
-                        <span id="file-name">dataset.csv</span>
-                        <div class="file-actions">
-                            <button id="remove-file-btn"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="action-nav">
+                        <h3>Quick Navigation</h3>
+                        <div class="nav-buttons">
+                            <button class="nav-btn outline-btn" onclick="navigateTo('module-instructions')">
+                                <i class="fa-solid fa-book"></i> Instructions
+                            </button>
+                            <button class="nav-btn primary-btn disabled" id="model-selection-btn" onclick="navigateTo('module-model-selection')" disabled>
+                                <i class="fa-solid fa-microchip"></i> Model Selection <i class="fa-solid fa-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <!-- Right Column: Upload Area -->
+                <div class="upload-section glass-panel">
+                    <div class="section-header">
+                        <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Dataset</h3>
+                        <div class="help-section">
+                            <a href="data/sample_dataset.xlsx" download class="sample-btn tooltip-container">
+                                <i class="fa-solid fa-download"></i> Sample
+                                <span class="tooltip">Dataset must contain 'Month', optional Features, and 'Index'. e.g. YYYY-MM and numerical index.</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="validation-message" id="validation-message">
-                        <!-- Success/Error injected here -->
+                    <div class="upload-area" id="drop-zone">
+                        <div class="upload-icon">
+                            <i class="fa-solid fa-file-csv"></i>
+                        </div>
+                        <h4>Drag & Drop your dataset here</h4>
+                        <p>Supported formats: <strong>.csv, .xlsx</strong></p>
+                        <span class="or-divider">OR</span>
+                        <label for="file-input" class="browse-btn">Browse Files</label>
+                        <input type="file" id="file-input" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                    </div>
+
+                    <!-- Upload Progress & Status -->
+                    <div class="upload-status hidden" id="upload-status">
+                        <div class="file-info">
+                            <i class="fa-solid fa-file-lines" id="file-type-icon"></i>
+                            <span id="file-name">dataset.csv</span>
+                            <div class="file-actions">
+                                <button id="remove-file-btn"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+
+                        <div class="validation-message" id="validation-message">
+                            <!-- Success/Error injected here -->
+                        </div>
                     </div>
                 </div>
-            </section>
-        </main>
+            </main>
 
-        <!-- Preview Section -->
-        <section class="preview-section glass-panel hidden" id="preview-panel">
-            <div class="section-header">
-                <h3><i class="fa-solid fa-table"></i> Dataset Preview</h3>
-                <span class="badge" id="row-count-badge">0 Rows</span>
-            </div>
-            <div class="table-container">
-                <table id="preview-table">
-                    <thead>
-                        <tr id="table-header"></tr>
-                    </thead>
-                    <tbody id="table-body">
-                        <!-- Rows injected here -->
-                    </tbody>
-                </table>
+            <!-- Preview Section -->
+            <div class="preview-section glass-panel hidden" id="preview-panel" style="margin-top: 2rem;">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-table"></i> Dataset Preview</h3>
+                    <span class="badge" id="row-count-badge">0 Rows</span>
+                </div>
+                <div class="table-container">
+                    <table id="preview-table">
+                        <thead>
+                            <tr id="table-header"></tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
+
+        <!-- MODULE 2: INSTRUCTIONS PAGE -->
+        <section id="module-instructions" class="page-section hidden">
+            <div class="glass-panel documentation-panel">
+                <div class="section-top-bar">
+                    <h2><i class="fa-solid fa-graduation-cap"></i> How to Use EcoForecast AI</h2>
+                    <button class="nav-btn outline-btn" onclick="navigateTo('module-home')">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home
+                    </button>
+                </div>
+                <div class="search-container">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="doc-search" placeholder="Search documentation...">
+                </div>
+
+                <div class="accordion-container">
+                    <!-- Dynamic Accordions injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: MODEL SELECTION PAGE -->
+        <section id="module-model-selection" class="page-section hidden">
+            <div class="section-top-bar" style="margin-bottom: 1.5rem;">
+                <h2><i class="fa-solid fa-microchip"></i> Model Selection</h2>
+                <button class="nav-btn outline-btn" onclick="navigateTo('module-home')">
+                    <i class="fa-solid fa-arrow-left"></i> Change Dataset
+                </button>
+            </div>
+            
+            <div class="model-selection-layout">
+                <!-- Left: Models Grid -->
+                <div class="models-grid" id="models-grid">
+                    <!-- Models injected via JS -->
+                </div>
+
+                <!-- Right: Settings Panel -->
+                <div class="settings-panel glass-panel">
+                    <h3>Forecast Settings</h3>
+                    
+                    <div class="form-group">
+                        <label>Forecast Horizon</label>
+                        <select id="forecast-horizon">
+                            <option value="3">3 Months</option>
+                            <option value="6" selected>6 Months</option>
+                            <option value="12">12 Months</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="target-metric" value="inflation" checked> Inflation (%)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="target-metric" value="index"> Price Index
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="selected-model-summary" id="selected-model-summary">
+                        Please select a model to proceed.
+                    </div>
+
+                    <button class="nav-btn primary-btn run-btn" id="run-forecast-btn" disabled>
+                        <span>Run Forecast</span> <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 4: RESULTS DASHBOARD -->
+        <section id="module-results" class="page-section hidden">
+            <div class="section-top-bar" style="margin-bottom: 1.5rem;">
+                <h2><i class="fa-solid fa-chart-pie"></i> Forecast Results</h2>
+                <div class="header-actions">
+                    <button class="nav-btn outline-btn" onclick="exportData()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                    <button class="nav-btn outline-btn" onclick="exportChart()"><i class="fa-solid fa-image"></i> Image</button>
+                    <button class="nav-btn outline-btn" onclick="navigateTo('module-model-selection')">
+                        <i class="fa-solid fa-arrow-left"></i> New Selection
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Row: Metrics & AI Summary -->
+            <div class="results-top-row">
+                <div class="metrics-grid">
+                    <div class="metric-card glass-panel">
+                        <div class="metric-title">Model Used</div>
+                        <div class="metric-value" id="result-model-name">--</div>
+                    </div>
+                    <div class="metric-card glass-panel">
+                        <div class="metric-title">Avg Last 6 Months</div>
+                        <div class="metric-value" id="result-past-avg">--%</div>
+                    </div>
+                    <div class="metric-card glass-panel highlighted">
+                        <div class="metric-title">Predicted Avg (Next <span id="r-horizon">6</span>M)</div>
+                        <div class="metric-value" id="result-future-avg">--%</div>
+                    </div>
+                    <div class="metric-card glass-panel">
+                        <div class="metric-title">Model MAE</div>
+                        <div class="metric-value" id="result-error-mae">--</div>
+                    </div>
+                </div>
+
+                <div class="ai-summary-panel glass-panel">
+                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Insights</h3>
+                    <p id="ai-summary-text">Generating insights based on forecasting results...</p>
+                </div>
+            </div>
+
+            <!-- Chart Row -->
+            <div class="chart-container glass-panel">
+                <div class="chart-header">
+                    <h3>Interactive Forecast Graph</h3>
+                    <div class="chart-controls" style="display:flex; gap: 0.5rem; align-items:center;">
+                        <select id="chart-metric-toggle" onchange="toggleChartMetric()" class="form-control" style="padding: 0.4rem; width:auto; font-size: 0.85rem;">
+                            <option value="index">Price Index</option>
+                            <option value="inflation">Inflation (%)</option>
+                        </select>
+                        <button class="icon-btn" onclick="resetZoom()" title="Reset Zoom"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button class="icon-btn" onclick="toggleFullScreen()" title="Full Screen"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Predictions Table -->
+            <div class="predictions-table-container glass-panel" style="margin-top:2rem;">
+                <h3><i class="fa-solid fa-table"></i> Tabular Forecast</h3>
+                <div class="table-container">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Predicted Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
     </div>
 
-    <!-- Script -->
-    <script src="js/app.js"></script>
+    <!-- Scripts -->
+    <script src="js/app.js?v=2"></script>
 </body>
 </html>
