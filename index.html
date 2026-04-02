@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Food Inflation Forecaster</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- SheetJS for Browser-side Parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-chart-line"></i>
+                <h1>EcoForecast <span>AI</span></h1>
+            </div>
+            <p class="subtitle">Food Inflation Forecasting Web System</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="main-content">
+            <!-- Left Column: Intro & Navigation -->
+            <section class="intro-section glass-panel">
+                <div class="hero-text">
+                    <h2 class="typing-container">
+                        <span id="typing-text"></span><span class="cursor">|</span>
+                    </h2>
+                    <p class="description">
+                        Harness the power of machine learning to predict future food inflation trends. 
+                        Upload your historical price index data to unlock deep insights and interactive statistical models.
+                    </p>
+                </div>
+
+                <div class="action-nav">
+                    <h3>Quick Navigation</h3>
+                    <div class="nav-buttons">
+                        <button class="nav-btn outline-btn" id="instructions-btn">
+                            <i class="fa-solid fa-book"></i> Instructions
+                        </button>
+                        <!-- Disabled by default, enabled after valid upload -->
+                        <button class="nav-btn primary-btn disabled" id="model-selection-btn" disabled>
+                            <i class="fa-solid fa-microchip"></i> Model Selection <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Upload Area -->
+            <section class="upload-section glass-panel">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Dataset</h3>
+                    <div class="help-section">
+                        <a href="data/sample_dataset.csv" download class="sample-btn tooltip-container">
+                            <i class="fa-solid fa-download"></i> Sample
+                            <span class="tooltip">Dataset must contain 'Month' and 'Index' columns. e.g. YYYY-MM and numerical index.</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="upload-area" id="drop-zone">
+                    <div class="upload-icon">
+                        <i class="fa-solid fa-file-csv"></i>
+                    </div>
+                    <h4>Drag & Drop your dataset here</h4>
+                    <p>Supported formats: <strong>.csv, .xlsx</strong></p>
+                    <span class="or-divider">OR</span>
+                    <label for="file-input" class="browse-btn">Browse Files</label>
+                    <input type="file" id="file-input" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                </div>
+
+                <!-- Upload Progress & Status -->
+                <div class="upload-status hidden" id="upload-status">
+                    <div class="file-info">
+                        <i class="fa-solid fa-file-lines" id="file-type-icon"></i>
+                        <span id="file-name">dataset.csv</span>
+                        <div class="file-actions">
+                            <button id="remove-file-btn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+
+                    <div class="validation-message" id="validation-message">
+                        <!-- Success/Error injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Preview Section -->
+        <section class="preview-section glass-panel hidden" id="preview-panel">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-table"></i> Dataset Preview</h3>
+                <span class="badge" id="row-count-badge">0 Rows</span>
+            </div>
+            <div class="table-container">
+                <table id="preview-table">
+                    <thead>
+                        <tr id="table-header"></tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Rows injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Script -->
+    <script src="js/app.js"></script>
+</body>
+</html>
